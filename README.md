@@ -55,6 +55,21 @@ Otherwise set your environment like this:
 CD <installFolder>
 DO _config
 ``` 
+
+Make sure that MongoDb is running. The demos assume you're running MongoDb on the local
+machine on the default port (27018). If you're running on a different server, or you use 
+a different port make sure to adjust the connection string.
+
+To start MongoDb locally, you can use:
+
+```
+c:\mongoDb> MongoD 
+```
+
+to start the server from the command line or follow the instructions on the MongoDb site
+for setting up Mongo as a service. I like to also add the MongoDb folder to my PATH environment
+variable so I access the server and the shell easily.
+
 Now you're ready to run a few operations.
 
 #### Save Data (and create Db/Table if it doesn't exist)
