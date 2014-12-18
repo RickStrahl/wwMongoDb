@@ -212,19 +212,28 @@ this.MessageOut( loCustomer.FirstName + " " + loCustomer.LastName + ;
                 " (ID: " + TRANSFORM(loCustomer._id) + ")")
 ```
 
-#### Nested Objects Collections
+#### Accessing Nested Objects and Collections
 Because MongoDb stores hierarchical data you can retrieve nested objects that can 
 contain child objects or collections. wwMongoDb deserializes those objects and
 collections as FoxPro objects and FoxPro collections. The previous two examples
 retrieved customer objects - and you can also access the child entities like this:
 
-**Accessing the Orders Collection**
-IF !ISNULL(loCustomer.Orders)        
-	FOR EACH loOrder IN loCustomer.Orders foxobject
-	    this.MessageOut( "    " + TRANSFORM(loMongo.GetDate(loOrder.Date))  + "  " + loOrder.OrderId + " " + TRANSFORM(loOrder.OrderTotal) )
-
-	ENDFOR        
+```
+*** Child Object
+IF !ISNULL(loCustomer.Address)
+   this.MessageOut( "   " + loCustomer.Address.Street + ", " +;
+                    loCustomer.Address.City )
 ENDIF
+
+*** Child Collection                
+IF !ISNULL(loCustomer.Orders)     
+    FOR lnx=1 TO loCustomer.Orders.Count   
+		loOrder = loCustomer.Orders[lnX]
+	    this.MessageOut( "    " + TRANSFORM(loMongo.GetDate(loOrder.Date))  + "  " + ;
+	    				 loOrder.OrderId + " " + TRANSFORM(loOrder.OrderTotal) )
+	ENDFOR        
+ENDIF                                
+```
 
 MongoDb can return nested objects/arrays. Arrays are returned as Collections in FoxPro. 
 For example on the above Entity 
@@ -235,8 +244,8 @@ The test classes can be easily run from within FoxUnit. To use FoxUnit:
 
 * [Download FoxUnit](http://vfpx.codeplex.com/wikipage?title=FoxUnit)
 * Install FoxUnit in a folder of your choice
-* Add the FoxPro path to FoxUnit root and source folders
-* Do FoxUnit
+* Add the FoxUnit to the FoxPro path. Add both the root and \sources
+* Run FoxUnit with `DO FoxUnit`
 * Use Load Class and find the \tests folder and PRG files
 * Run selected or all tests
 * Double click to jump to code
