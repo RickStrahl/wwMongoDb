@@ -92,7 +92,7 @@ ADDPROPERTY(loCustomer,"FirstName","Rick")
 ADDPROPERTY(loCustomer,"LastName","Strahl")
 ADDPROPERTY(loCustomer,"Company","West Wind Technologies")
 ADDPROPERTY(loCustomer,"Entered",DATETIME())
-ADDPROPERTY(loCustomer,"Orders",null)
+ADDPROPERTY(loCustomer,"Orders",CREATEOBJECT("Collection"))
 
 loAddress = CREATEOBJECT("EMPTY")
 ADDPROPERTY(loAddress,"Street","32 Kaiea")
