@@ -523,7 +523,7 @@ namespace Westwind.Data.MongoDb
         /// <summary>
         /// Loads an entity and returns a JSON string
         /// </summary>
-        /// <param name="id"></param>
+        /// <param name="id">A string ID or Object Id value to look up</param>
         /// <param name="collection"></param>
         /// <returns></returns>
         public string LoadJson(int id, string collection)

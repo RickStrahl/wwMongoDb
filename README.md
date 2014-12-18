@@ -1,6 +1,6 @@
 # wwMongoDb
----------------
-### A small library to access MongoDb from Visual FoxPro
+
+#### A small library to access MongoDb from Visual FoxPro
 *by Rick Strahl, West Wind Technologies*
 
 ***Under Construction - prototype stage***
@@ -56,7 +56,7 @@ Otherwise set your environment like this:
 CD <installFolder>
 DO _config
 ``` 
-Now you're ready to run a few operations:
+Now you're ready to run a few operations.
 
 #### Save Data (and create Db/Table if it doesn't exist)
 ```
@@ -69,63 +69,78 @@ loMongo = CREATEOBJECT("wwMongoDb")
 *** if the Db doesn't exist it auto-creates
 loMongo.Connect("mongodb://localhost/FoxMongoTest")
 
+*** Create an object to persist
 *** Note objects are serialized as lower case
 loCustomer = CREATEOBJECT("EMPTY")
 
-*** Highly recommend you create your own ids - so that they 
-*** are stored as strings or numbers rather than object IDs
+*** Recommend you assign your own ids for easier querying
 ADDPROPERTY(loCustomer,"_id",loMongo.GenerateId())
-ADDPROPERTY(loCustomer,"firstname","Rick (Fox)")
-ADDPROPERTY(loCustomer,"lastname","Strahl (Fox)")
-ADDPROPERTY(loCustomer,"company","West Wind (Fox)")
-ADDPROPERTY(loCustomer,"entered",DATETIME())
+ADDPROPERTY(loCustomer,"FirstName","Markus")
+ADDPROPERTY(loCustomer,"LastName","Egger")
+ADDPROPERTY(loCustomer,"Company","EPS Software")
+ADDPROPERTY(loCustomer,"Entered", DATETIME())
 
 loAddress = CREATEOBJECT("EMPTY")
-ADDPROPERTY(loAddress,"street","32 Kaiea")
-ADDPROPERTY(loAddress,"city","Paia")
+ADDPROPERTY(loAddress,"Street","32 Kaiea")
+ADDPROPERTY(loAddress,"City","Paia")
+ADDPROPERTY(loCustomer,"Address",loAddress)
 
-ADDPROPERTY(loCustomer,"address",loAddress)
+*** Create child orders (one to many) 
+loOrders = CREATEOBJECT("Collection")
+ADDPROPERTY(loCustomer,"Orders",loOrders)
 
-IF (!loMongo.Save(loCustomer,"Customers"))
-   WAIT WINDOW loMongo.cErrorMsg
-   RETURN
-ENDIF
-   
+loOrder = CREATEOBJECT("Empty")
+ADDPROPERTY(loOrder,"Date",DATETIME())
+ADDPROPERTY(loOrder,"OrderId",SUBSTR(SYS(2015),2))
+ADDPROPERTY(loOrder,"OrderTotal",120.00)
+loOrders.Add(loOrder)
+
+loOrder = CREATEOBJECT("Empty")
+ADDPROPERTY(loOrder,"Date",DATETIME())
+ADDPROPERTY(loOrder,"OrderId",SUBSTR(SYS(2015),2))
+ADDPROPERTY(loOrder,"OrderTotal",120.00)
+loOrders.Add(loOrder)
+
+this.AssertTrue(loMongo.Save(loCustomer,"Customers"),loMongo.cErrorMsg)
+
+this.AssertTrue(loCustomer._id == loMongo.oLastResult.Id,"Own id shouldn't be updated")
+
+this.MessageOut("ID Generated: " + loMongo.oLastResult.Id)   
 ```
-Note that you can either assign an Id explicitly as I did here (recommended) or you
+Note that you can either assign an Id explicitly as I did here (recommended), or you
 can let MongoDb auto-create an id. Auto-created Ids are returned on a oLastResult object
 as:
 
 ```
-lcId = loMongo.LastResult.Id
+lcId = loMongo.oLastResult.Id
 ```
 
 You can also check for errors on a Save operation:
 
-
 ```
 IF !loMongo.Ok
-	? loMongo.LastResult.Message
+	? loMongo.oLastResult.Message
     RETURN
 ENDIF
 ```
 
 Note that error messages from Mongo can be sketchy and often don't return any message info.
-Your mileage may vary.
+Your mileage may vary. It's usually best to check the result value for the function and if it's not returning the type you're expecting you have an error to deal with.
 
-#### Read a Collection of Items
+#### Query: Read a Collection of Items based on a filter
 ```
-loMongo = CREATEOBJECT("wwMongoDb")
-
-loCustomers = loMongo.Find('{ firstname: "Rick" }',"Customers",.T.)
+loMongo = this.CreateMongo()
+loCustomers = loMongo.Find('{ firstname: "Rick" }',"Customers")
 
 this.AssertNotNull(loCustomers,"Customers shouldn't be null")
 
 FOR lnX = 1 TO loCustomers.Count
    loCustomer = loCustomers[lnX]
+
+   *** NOTE: MongoDb dates come back as objects so use GetDate()
    this.MessageOut( loCustomer.FirstName + " " + loCustomer.LastName + ;
-                    " (" + TRANSFORM(loCustomer.Entered) + ")" + ;
-                    " (" + TRANSFORM(loCustomer._id) + ")" )
+                " (" + TRANSFORM(loMongo.GetDate(loCustomer.entered)) + ")" + ;
+                " (ID: " + TRANSFORM(loCustomer._id) + ")")
 ENDFOR
 ```
 You can use any valid search operations that are part of the MongoDb JSON vocabulary (as shown in
@@ -134,16 +149,26 @@ most articles and books).
 For example the following find all entries that start with an R using a RegEx expression (which is legal in JSON/JavaScript):
 
 ```
-loCustomers = loMongo.Find('{ firstname: /^R.*/i }',"Customers",.T.)
+*** Search parameters and skip 30 and limit to 10 items
+loCustomers = loMongo.Find('{ firstname: /^R.*/i, entered: { $gt: new Date(2014,12,1) }',;
+                           "Customers",30,10)
 ```
 
-You can also use FoxPro objects to represent the JSON if you prefer rather than handcoding the
-JSON for the query manually.
+#### Returning a single Entity
+```
+loMongo = this.CreateMongo()
 
+loCustomer = loMongo.FindOne('{ firstname: "Rick" }',"Customers")
 
-loCustomers = loMongo.Find('{ firstname: "Rick (Fox)" }',"Customers",.T.)
+this.AssertNotNull(loCustomer,"Customers shouldn't be null")
 
+*** NOTE: MongoDb dates come back as objects so use GetDate()
+this.MessageOut( loCustomer.FirstName + " " + loCustomer.LastName + ;
+                " (" + TRANSFORM(loMongo.GetDate(loCustomer.entered)) + ")" + ;
+                " (ID: " + TRANSFORM(loCustomer._id) + ")")
+```
 
+MongoDb can return nested objects/arrays. Arrays are returned as Collections in FoxPro. 
 
 ### License
 This library is published under MIT license terms:

@@ -92,6 +92,7 @@ ADDPROPERTY(loCustomer,"FirstName","Rick")
 ADDPROPERTY(loCustomer,"LastName","Strahl")
 ADDPROPERTY(loCustomer,"Company","West Wind Technologies")
 ADDPROPERTY(loCustomer,"Entered",DATETIME())
+ADDPROPERTY(loCustomer,"Orders",null)
 
 loAddress = CREATEOBJECT("EMPTY")
 ADDPROPERTY(loAddress,"Street","32 Kaiea")
@@ -110,7 +111,7 @@ ENDFUNC
 ************************************************************************
 *  BasicSaveEntityWithOwnIdTest
 ****************************************
-FUNCTION BasicSaveEntityWithOwnIdTest()
+FUNCTION SaveEntityWithChildrenWithTest()
 
 loMongo = this.CreateMongo()
 
@@ -127,8 +128,22 @@ ADDPROPERTY(loCustomer,"Entered", DATETIME())
 loAddress = CREATEOBJECT("EMPTY")
 ADDPROPERTY(loAddress,"Street","32 Kaiea")
 ADDPROPERTY(loAddress,"City","Paia")
-
 ADDPROPERTY(loCustomer,"Address",loAddress)
+
+loOrders = CREATEOBJECT("Collection")
+ADDPROPERTY(loCustomer,"Orders",loOrders)
+
+loOrder = CREATEOBJECT("Empty")
+ADDPROPERTY(loOrder,"Date",DATETIME())
+ADDPROPERTY(loOrder,"OrderId",SUBSTR(SYS(2015),2))
+ADDPROPERTY(loOrder,"OrderTotal",120.00)
+loOrders.Add(loOrder)
+
+loOrder = CREATEOBJECT("Empty")
+ADDPROPERTY(loOrder,"Date",DATETIME())
+ADDPROPERTY(loOrder,"OrderId",SUBSTR(SYS(2015),2))
+ADDPROPERTY(loOrder,"OrderTotal",120.00)
+loOrders.Add(loOrder)
 
 this.AssertTrue(loMongo.Save(loCustomer,"Customers"),loMongo.cErrorMsg)
 
@@ -153,9 +168,7 @@ LOCAL loMongo
 loMongo = this.CreateMongo()
 loCustomers = loMongo.Find('{ firstname: "Rick" }',"Customers")
 
-this.AssertNotNull(loCustomers,"Customers shouldnt be null")
-
-
+this.AssertNotNull(loCustomers,"Customers shouldn't be null")
 
 FOR lnX = 1 TO loCustomers.Count
    loCustomer = loCustomers[lnX]
@@ -192,7 +205,7 @@ FOR lnX = 1 TO loCustomers.Count
    *** NOTE: MongoDb dates come back as objects so use GetDate()
    this.MessageOut( loCustomer.FirstName + " " + loCustomer.LastName + ;
                 " (" + TRANSFORM(loMongo.GetDate(loCustomer.entered)) + ")" + ;
-                " (ID: " + TRANSFORM(loCustomer._id) + ")")
+                " (ID: " + TRANSFORM(loCustomer._id) + ")" )
 
 ENDFOR
 

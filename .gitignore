@@ -10,6 +10,7 @@ packages
 *.vbr
 *.err
 t.*
+FXU*.*
 
 *.bak
 *.tbk
