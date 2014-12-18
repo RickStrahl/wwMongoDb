@@ -221,8 +221,8 @@ this.cLastResponse = lcJson
 
 this.oLastResult = this.oBridge.InvokeMethod(this.oMongo,"SaveFromJson",lcJson,"Customers")
 
-IF ISNULL(this.oLastResult)
-   this.oLastResult = this.CreateEmptyResult()
+IF VARTYPE(this.oLastResult) # "O"
+   this.oLastResult = this.CreateEmptyLastResult()
    this.oLastResult.Ok = .F.
    this.lLastResult.Message = this.oBridge.cErrorMsg  
    THIS.SetError("Save operation failed: " + this.oBridge.cErrorMsg)
@@ -348,7 +348,7 @@ ENDFUNC
 ***    Return:
 ************************************************************************
 HIDDEN FUNCTION CreateEmptyLastResult
-RETURN this.oSerialize([{ Ok: true, Message: "", Id: "" }])
+RETURN this.Deserialize([{ Ok: true, Message: "", Id: "" }])
 ENDFUNC
 *   CreateLastResult
 

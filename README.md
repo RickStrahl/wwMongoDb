@@ -52,12 +52,12 @@ folder which uses config.fpw to set paths.
 Otherwise set your environment like this:
 
 ```
-CD <installFolder>
+CD <installFolder>\Fox
 DO _config
 ``` 
 
 Make sure that MongoDb is running. The demos assume you're running MongoDb on the local
-machine on the default port (27018). If you're running on a different server, or you use 
+machine on the default port (27017). If you're running on a different server, or you use 
 a different port make sure to adjust the connection string.
 
 To start MongoDb locally, you can use:
@@ -67,9 +67,20 @@ c:\mongoDb> MongoD
 ```
 
 to start the server from the command line or follow the instructions on the MongoDb site
-for setting up Mongo as a service. I like to also add the MongoDb folder to my PATH environment
-variable so I access the server and the shell easily.
+for setting up MongoDb as a service. I like to also add the MongoDb folder to my PATH environment
+variable so I can access the server and the shell easily.
 
+Once everything is running you can go to the FoxPro command prompt and do:
+
+```
+DO test
+```
+
+which runs a few simple commands to show basic operation. For more detailed examples you
+can look at the FoxUnit tests in tests\BasicMongoDbsamples.prg and run those tests in
+FoxUnit.
+
+### Data Operations with wwMongoDb
 Now you're ready to run a few operations.
 
 #### Save Data (and create Db/Table if it doesn't exist)
@@ -182,7 +193,54 @@ this.MessageOut( loCustomer.FirstName + " " + loCustomer.LastName + ;
                 " (ID: " + TRANSFORM(loCustomer._id) + ")")
 ```
 
+You can also use the Load() method to retrieve a single entity by ID.
+
+#### Returning an Entity by ID
+
+```
+lcID = "SomeIdYouCaptured"
+
+loMongo = this.CreateMongo()
+
+loCustomer = loMongo.Load(lcId,"Customers")
+
+this.AssertNotNull(loCustomer,"Customers shouldn't be null")
+
+*** NOTE: MongoDb dates come back as objects so use GetDate()
+this.MessageOut( loCustomer.FirstName + " " + loCustomer.LastName + ;
+                " (" + TRANSFORM(loMongo.GetDate(loCustomer.entered)) + ")" + ;
+                " (ID: " + TRANSFORM(loCustomer._id) + ")")
+```
+
+#### Nested Objects Collections
+Because MongoDb stores hierarchical data you can retrieve nested objects that can 
+contain child objects or collections. wwMongoDb deserializes those objects and
+collections as FoxPro objects and FoxPro collections. The previous two examples
+retrieved customer objects - and you can also access the child entities like this:
+
+**Accessing the Orders Collection**
+IF !ISNULL(loCustomer.Orders)        
+	FOR EACH loOrder IN loCustomer.Orders foxobject
+	    this.MessageOut( "    " + TRANSFORM(loMongo.GetDate(loOrder.Date))  + "  " + loOrder.OrderId + " " + TRANSFORM(loOrder.OrderTotal) )
+
+	ENDFOR        
+ENDIF
+
 MongoDb can return nested objects/arrays. Arrays are returned as Collections in FoxPro. 
+For example on the above Entity 
+
+### Running FoxUnit Tests
+The best way to check out examples is to run the FoxUnit tests in the tests\ folder.
+The test classes can be easily run from within FoxUnit. To use FoxUnit:
+
+* [Download FoxUnit](http://vfpx.codeplex.com/wikipage?title=FoxUnit)
+* Install FoxUnit in a folder of your choice
+* Add the FoxPro path to FoxUnit root and source folders
+* Do FoxUnit
+* Use Load Class and find the \tests folder and PRG files
+* Run selected or all tests
+* Double click to jump to code
+
 
 ### License
 This library is published under MIT license terms:

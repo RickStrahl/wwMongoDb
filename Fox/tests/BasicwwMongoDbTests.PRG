@@ -75,41 +75,7 @@ ENDFUNC
 *  ConnectionTest
 
 ************************************************************************
-*  BasicSaveEntityTest
-****************************************
-FUNCTION BasicSaveEntityTest()
-
-*** Create instance (reused in all tests)
-loMongo = this.CreateMongo()
-
-*** Note objects are serialized as lower case
-loCustomer = CREATEOBJECT("EMPTY")
-
-*** Highly recommend you create your own ids - so that they 
-*** are stored as strings or numbers rather than object IDs
-ADDPROPERTY(loCustomer,"_id",loMongo.GenerateId())
-ADDPROPERTY(loCustomer,"FirstName","Rick")
-ADDPROPERTY(loCustomer,"LastName","Strahl")
-ADDPROPERTY(loCustomer,"Company","West Wind Technologies")
-ADDPROPERTY(loCustomer,"Entered",DATETIME())
-ADDPROPERTY(loCustomer,"Orders",CREATEOBJECT("Collection"))
-
-loAddress = CREATEOBJECT("EMPTY")
-ADDPROPERTY(loAddress,"Street","32 Kaiea")
-ADDPROPERTY(loAddress,"City","Paia")
-
-ADDPROPERTY(loCustomer,"Address",loAddress)
-
-this.AssertTrue(loMongo.Save(loCustomer,"Customers"),loMongo.cErrorMsg)
-
-this.MessageOut("ID Generated: " + loMongo.oLastResult.Id)
-
-ENDFUNC
-*  BasicSaveEntityTest
-
-
-************************************************************************
-*  BasicSaveEntityWithOwnIdTest
+*  SaveEntityWithChildrenWithTest
 ****************************************
 FUNCTION SaveEntityWithChildrenWithTest()
 
@@ -152,7 +118,40 @@ this.AssertTrue(loCustomer._id == loMongo.oLastResult.Id,"Own id shouldn't be up
 this.MessageOut("ID Generated: " + loMongo.oLastResult.Id)
 
 ENDFUNC
-*   BasicSaveEntityWithOwnIdTest
+*  SaveEntityWithChildrenWithTest
+
+************************************************************************
+*  BasicSaveEntityTest
+****************************************
+FUNCTION BasicSaveEntityTest()
+
+*** Create instance (reused in all tests)
+loMongo = this.CreateMongo()
+
+*** Note objects are serialized as lower case
+loCustomer = CREATEOBJECT("EMPTY")
+
+*** Highly recommend you create your own ids - so that they 
+*** are stored as strings or numbers rather than object IDs
+ADDPROPERTY(loCustomer,"_id",loMongo.GenerateId())
+ADDPROPERTY(loCustomer,"FirstName","Rick")
+ADDPROPERTY(loCustomer,"LastName","Strahl")
+ADDPROPERTY(loCustomer,"Company","West Wind Technologies")
+ADDPROPERTY(loCustomer,"Entered",DATETIME())
+ADDPROPERTY(loCustomer,"Orders",CREATEOBJECT("Collection"))
+
+loAddress = CREATEOBJECT("EMPTY")
+ADDPROPERTY(loAddress,"Street","32 Kaiea")
+ADDPROPERTY(loAddress,"City","Paia")
+
+ADDPROPERTY(loCustomer,"Address",loAddress)
+
+this.AssertTrue(loMongo.Save(loCustomer,"Customers"),loMongo.cErrorMsg)
+
+this.MessageOut("ID Generated: " + loMongo.oLastResult.Id)
+
+ENDFUNC
+*  BasicSaveEntityTest
 
 ************************************************************************
 *  FindTest
@@ -265,6 +264,20 @@ this.MessageOut( loCustomer.FirstName + " " + loCustomer.LastName + ;
                 " (" + TRANSFORM(loMongo.GetDate(loCustomer.entered)) + ")" + ;
                 " (ID: " + TRANSFORM(loCustomer._id) + ")")
 
+*** Child Object
+IF !ISNULL(loCustomer.Address)
+   this.MessageOut( "   " + loCustomer.Address.Street + ", " + loCustomer.Address.City )
+ENDIF
+
+*** Child Collection                
+IF !ISNULL(loCustomer.Orders)     
+    FOR lnx=1 TO loCustomer.Orders.Count   
+		loOrder = loCustomer.Orders[lnX]
+	    this.MessageOut( "    " + TRANSFORM(loMongo.GetDate(loOrder.Date))  + "  " + ;
+	    				 loOrder.OrderId + " " + TRANSFORM(loOrder.OrderTotal) )
+	ENDFOR        
+ENDIF                
+
 ENDFUNC
 *   FindOneTest
 
@@ -293,6 +306,21 @@ this.AssertNotNull(loCustomer,"Customers shouldnt be null")
 this.MessageOut( loCustomer.FirstName + " " + loCustomer.LastName + ;
                 " (" + TRANSFORM(loMongo.GetDate(loCustomer.entered)) + ")" + ;
                 " (ID: " + TRANSFORM(loCustomer._id) + ")")
+
+
+*** Child Object
+IF !ISNULL(loCustomer.Address)
+   this.MessageOut( "   " + loCustomer.Address.Street + ", " + loCustomer.Address.City )
+ENDIF
+
+*** Child Collection                
+IF !ISNULL(loCustomer.Orders)     
+    FOR lnx=1 TO loCustomer.Orders.Count   
+		loOrder = loCustomer.Orders[lnX]
+	    this.MessageOut( "    " + TRANSFORM(loMongo.GetDate(loOrder.Date))  + "  " + ;
+	    				 loOrder.OrderId + " " + TRANSFORM(loOrder.OrderTotal) )
+	ENDFOR        
+ENDIF                                
 
 ENDFUNC
 *   FindTest
