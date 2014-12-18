@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Linq.Expressions;
 using MongoDB.Bson;
 using MongoDB.Bson.IO;
@@ -12,41 +13,27 @@ using Westwind.Data.MongoDb.Properties;
 namespace Westwind.Data.MongoDb
 {
 
-    public class MongoDbDataAccess : MongoDbDataAccess<object, Westwind.Data.MongoDb.MongoDbContext>
+    /// <summary>
+    /// A non-generic version of the Mongo data access component that requires explicitly
+    /// specifying result entity types.
+    /// </summary>
+    public class MongoDbDataAccess : MongoDbDataAccess<object>
     {
         public MongoDbDataAccess(string connectionString) : base(connectionString: connectionString)
         { }        
     }
 
     /// <summary>
-    /// Light weight Entity Framework Code First Business object base class
-    /// that acts as a logic container for an entity DbContext instance. 
-    /// 
-    /// Subclasses of this business object should be used to implement most data
-    /// related logic that deals with creating, updating, removing and querying 
-    /// of data use EF Code First.
-    /// 
-    /// The business object provides base CRUD methods like Load, NewEntity,
-    /// Remove that act on the specified entity type. The Save() method uses
-    /// the EF specific context based SaveChanges
-    /// which saves all pending changes (not just those for the current entity 
-    /// and its relations). 
-    /// 
-    /// These business objects should be used as atomically as possible and 
-    /// call Save() as often as possible to update pending data.
+    /// A light wrapper around the MongoDb API to provide for easy queries
+    /// and Save operations.    
     /// </summary>
     /// <typeparam name="TEntity">
-    /// The type of the entity that this business object is tied to. 
-    /// Note that you can access any of the context's entities - this entity
-    /// is meant as a 'top level' entity that controls the operations of
-    /// the CRUD methods. Maps to the Entity property on this class
+    /// The type of an optional entity that various queries can project
+    /// results into. this is mainly a convenience parameter that removes
+    /// the need to specify a generic type for each operation.
     /// </typeparam>
-    /// <typeparam name="TMongoContext">
-    /// A MongoDbContext type that configures MongoDb driver behavior and startup operation.
-    /// </typeparam>
-    public class MongoDbDataAccess<TEntity,TMongoContext>
-        where TEntity : class, new()
-        where TMongoContext : MongoDbContext, new()
+    public class MongoDbDataAccess<TEntity>
+        where TEntity : class, new()     
     {
         /// <summary>
         /// Instance of the MongoDb core database instance.
@@ -54,15 +41,23 @@ namespace Westwind.Data.MongoDb
         /// </summary>
         public MongoDatabase Database { get; set; }
 
-        protected string CollectionName { get; set; }        
-        protected MongoDbContext Context = new MongoDbContext();
+        /// <summary>
+        /// ConnectionString to the database
+        /// </summary>
+        protected string ConnectionString { get; set; }
 
         /// <summary>
-        /// Determines whether or not the Save operation causes automatic
-        /// validation. Default is false.
-        /// </summary>                        
-        public bool AutoValidate { get; set; }
-
+        /// Name of the database that this instance is connected to
+        /// </summary>
+        protected string DatabaseName { get; set; }
+        
+        /// <summary>
+        /// Name of the default collection associated with the Entity
+        /// Used internally to dynamically retrieve the collection at
+        /// runtime.
+        /// </summary>
+        protected string CollectionName { get; set; }        
+        
         /// <summary>
         /// Re-usable MongoDb Collection instance.
         /// Set internally when the driver is initialized
@@ -110,7 +105,6 @@ namespace Westwind.Data.MongoDb
             get { return _errorException; }
             set { _errorException = value; }
         }
-
         [NonSerialized] private Exception _errorException;
 
 
@@ -126,8 +120,7 @@ namespace Westwind.Data.MongoDb
         public MongoDbDataAccess(string collection = null, string database = null, string connectionString = null)
         {
             InitializeInternal();
-            
-            Context = new MongoDbContext();
+                        
             Database = GetDatabase(collection, database, connectionString);
 
             if (!Database.CollectionExists(CollectionName))
@@ -141,7 +134,69 @@ namespace Westwind.Data.MongoDb
             Initialize();
         }
 
+        /// <summary>
+        /// Creates a connection to a databaseName based on the Databasename and 
+        /// optional server connection string.
+        /// 
+        /// Returned Mongo DatabaseName 'connection' can be cached and reused.
+        /// </summary>
+        /// <param name="connectionString">Mongo server connection string.
+        /// Can either be a connection string entry name from the ConnectionStrings
+        /// section in the config file or a full server string.        
+        /// If not specified looks for connectionstring entry in  same name as
+        /// the context. Failing that mongodb://localhost is used.
+        ///  
+        /// Examples:
+        /// MyDatabaseConnectionString   (ConnectionStrings Config Name)       
+        /// mongodb://localhost
+        /// mongodb://localhost:22011/MyDatabase
+        /// mongodb://username:password@localhost:22011/MyDatabase        
+        /// </param>        
+        /// <param name="databaseName">Name of the databaseName to work with if not specified on the connection string</param>
+        /// <returns>Database instance</returns>
+        public virtual MongoDatabase GetDatabase(string connectionString = null, string databaseName = null)
+        {
+            // apply global values from this context if not passed
+            if (string.IsNullOrEmpty(databaseName))
+                databaseName = DatabaseName;
 
+            if (string.IsNullOrEmpty(connectionString))
+                connectionString = ConnectionString;
+
+            // if not specified use connection string with name of type
+            if (string.IsNullOrEmpty(connectionString))
+                connectionString = GetType().Name;
+
+            // is it a connection string name?
+            if (!connectionString.Contains("://"))
+            {
+                var conn = ConfigurationManager.ConnectionStrings[connectionString];
+                if (conn != null)
+                    connectionString = conn.ConnectionString;
+                else
+                    connectionString = "mongodb://localhost";
+            }
+
+            ConnectionString = connectionString;
+
+            var client = new MongoClient(connectionString);
+            var server = client.GetServer();
+
+            // is it provided on the connection string?
+            if (string.IsNullOrEmpty(databaseName))
+            {
+                var uri = new Uri(connectionString);
+                var path = uri.LocalPath;
+                databaseName = uri.LocalPath.Replace("/", "");
+            }
+
+            var db = server.GetDatabase(databaseName);
+
+            if (db != null)
+                DatabaseName = databaseName;
+
+            return db;
+        }
 
         /// <summary>
         /// Specialized CreateContext that accepts a connection string and provider.
@@ -159,8 +214,8 @@ namespace Westwind.Data.MongoDb
             string serverString = null)
         {
 
-            var db = Context.GetDatabase(serverString,database);
-
+            var db = GetDatabase(serverString,database);
+            
             if (string.IsNullOrEmpty(collection))
                 collection = Pluralizer.Pluralize(typeof(TEntity).Name);
 
@@ -187,10 +242,7 @@ namespace Westwind.Data.MongoDb
         {
             // nothing to do yet, but we'll use this for sub objects
             // and potential meta data pre-parsing           
-        }
-
-   
-
+        }   
         #endregion
 
         /// <summary>
