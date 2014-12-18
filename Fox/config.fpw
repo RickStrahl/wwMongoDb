@@ -1,0 +1,9 @@
+PATH=.\classes;.\bin;.\tests;..\..\Tools\FoxUnit;..\Tools\FoxUnit\Source;
+SCREEN=On
+TITLE=West Wind MongoDb - FoxPro MongoDb Interface
+EXCLUSIVE=OFF
+SAFETY=OFF
+CENTURY=ON
+STRICTDATE=0
+MEMOWIDTH=150
+_vfpstart=

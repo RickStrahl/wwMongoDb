@@ -1,0 +1,25 @@
+# Build Folders (you can keep bin if you'd like, to store dlls and pdbs)
+bin
+obj
+Release
+Debug
+packages
+*.sdf
+*.pdb
+*.tlb
+*.vbr
+*.err
+t.*
+
+*.bak
+*.tbk
+*.fxp
+WebEssentials*.*
+
+
+# mstest test results
+TestResults
+
+*.user
+*.suo
+
