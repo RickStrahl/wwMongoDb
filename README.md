@@ -21,7 +21,7 @@ This library works through a number of layers to access MongoDb:
 * The FoxPro class turns the results into FoxPro objects to return to user code
 
 
-### Getting Started
+### What you need
 In order to use and play with this library you will need a number of things:
 
 * A local or remote instance of [MongoDb](http://www.mongodb.org/downloads "MongoDb Downloads") where you have access to create data (install instructions)
@@ -29,24 +29,22 @@ In order to use and play with this library you will need a number of things:
 * [FoxUnit](http://vfpx.codeplex.com/wikipage?title=FoxUnit "FoxUnit Download") (for checking out the samples)
 * Recommended: [RoboMongo](http://robomongo.org/ "RoboMongo Download") - A simple IDE for querying and viewing MongoDb data 
 
-
-### Usage
 In order to use this library you will have a number of dependencies, which you can find in the Dist folder of this project. Essentially you have:
 
 * wwMongoDb.prg - Main class your code interfaces with
 * classes Folder - FoxPro support classes
 * wconnect.h - required for support classes
 * wwDotnetBridge.dll/wwIPstuff.dll - .NET interface libraries
-* Newtonsoft.json.dll - .NET JSON library
-* bin\Westwind.Data.MongoDb - MongoDb interface libary
-* bin\MongoDb.Driver\.Bson - MongoDb .NET Driver
+* Newtonsoft.json.dll - JSON library
+* bin\Westwind.Data.MongoDb - wwMongoDb interface libary
+* bin\MongoDb.Driver\.Bson - MongoDb .NET Driver libary
 
 To use these files copy them into your application's root folder or anywhere where they are
 accessible in the FoxPro path. All three folders (root/classes/bin) need to be added to 
-the FoxPro path. If you like you can simply put them all into a single folder.
+the FoxPro path. If you like you can also simply put all files into a single folder.
 
 ### Getting Started
-To run any code in the installation folder make sure you launched FoxPro in installation
+To run any code in the installation folder make sure you launch FoxPro in the installation
 folder which uses config.fpw to set paths. 
 
 Otherwise set your environment like this:
@@ -77,11 +75,35 @@ DO test
 ```
 
 which runs a few simple commands to show basic operation. For more detailed examples you
-can look at the FoxUnit tests in tests\BasicMongoDbsamples.prg and run those tests in
-FoxUnit.
+can look at the FoxUnit tests in tests\BasicMongoDbsamples.prg and run those tests in FoxUnit.
 
 ### Data Operations with wwMongoDb
 Now you're ready to run a few operations.
+
+#### Connecting to MongoDb
+```
+*** Load library and dependencies
+DO wwMongoDb
+
+*** Create the actual Fox instance
+loMongo = CREATEOBJECT("wwMongoDb")
+
+*** Connect to the MongoDb Server and Database
+*** if the Db doesn't exist it auto-creates
+IF !loMongo.Connect("mongodb://localhost/FoxMongoTest")
+   ? "Unable to connect to MongoDb: " + loMongo.cErrorMsg
+   RETURN
+ENDIF
+```
+In order to access MongoDb data you need to first create an instance and then connect to a specific server and database.
+
+The connection string supports the following URL Moniker syntax:
+
+	mongodb://username:password@servername:port/database
+
+if no port is specified the default 27017 port is used. 
+
+I recommend that you create an instance of the wwMongoDb object once and then store it somewhere persistent in your application: On an application or server object so it can be used without re-creating an instance for each connection. Unlike SQL server, Mongo creates new connections on each request, so there's no 'persistent' connection to the server.
 
 #### Save Data (and create Db/Table if it doesn't exist)
 ```
