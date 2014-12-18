@@ -1,7 +1,6 @@
 # wwMongoDb
 
 #### A small library to access MongoDb from Visual FoxPro
-*by Rick Strahl, West Wind Technologies*
 
 ***Under Construction - prototype stage***
 
