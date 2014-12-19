@@ -186,6 +186,11 @@ ENDFUNC
 ***    Return: object or null
 ************************************************************************
 FUNCTION Load(lvId, lcCollection)
+
+IF EMPTY(lcCollection)
+   ERROR "Collection must be supplied when calling Load()"
+ENDIF
+
 lcJson = this.oBridge.InvokeMethod(this.oMongo,"LoadJson",lvId,lcCollection)
 RETURN this.ProcessJsonResult(lcJson)
 ENDFUNC

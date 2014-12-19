@@ -75,7 +75,7 @@ ENDFUNC
 *  ConnectionTest
 
 ************************************************************************
-*  SaveEntityWithChildrenWithTest
+*  SaveEntityWithChildren
 ****************************************
 FUNCTION SaveEntityWithChildrenWithTest()
 
@@ -119,6 +119,153 @@ this.MessageOut("ID Generated: " + loMongo.oLastResult.Id)
 
 ENDFUNC
 *  SaveEntityWithChildrenWithTest
+
+************************************************************************
+*  SaveEntityFromJson
+****************************************
+FUNCTION SaveEntityFromJson()
+
+loMongo = this.CreateMongo()
+
+*** Note objects are serialized as lower case
+loCustomer = CREATEOBJECT("EMPTY")
+
+TEXT TO lcJson TEXTMERGE NOSHOW
+{
+    _id: "<<loMongo.GenerateId()>>",
+    FirstName: "Rick",
+    LastName: "Strahl",
+    Company: "West Wind",
+    Entered: "<<TTOC(DATETIME(),3)>>",
+    Address: {
+        Street: "32 Kaiea",
+        City: "Paia"
+    },
+    Orders: [
+        { OrderId: "ar431211", OrderTotal: 125.44, Date: "<<TTOC(DATETIME(),3)>>Z"},
+        { OrderId: "fe134341", OrderTotal: 95.12, Date: "<<TTOC(DATETIME(),3)>>Z" }
+    ]
+}
+ENDTEXT
+
+
+this.AssertTrue(loMongo.Save(lcJson,"Customers",.T.),loMongo.cErrorMsg)
+
+lcId = loMongo.oLastResult.Id
+this.MessageOut("ID Generated: " + lcId)
+
+loCustomer = loMongo.Load(lcId,"Customers")
+
+this.MessageOut( loCustomer.FirstName + " " + loCustomer.LastName + ;
+               " (" + TRANSFORM(loCustomer.entered) + ")" + ;
+               " (ID: " + TRANSFORM(loCustomer._id) + ")")
+
+
+ENDFUNC
+*  SaveEntityWithChildrenWithTest
+
+
+************************************************************************
+*  RunManyInserts
+****************************************
+FUNCTION RunManyInserts()
+
+loMongo = this.CreateMongo()
+
+*** Note objects are serialized as lower case
+loCustomer = CREATEOBJECT("EMPTY")
+
+*** Recommend you assign your own ids for easier querying
+ADDPROPERTY(loCustomer,"_id",SYS(2015))
+ADDPROPERTY(loCustomer,"FirstName","Rick")
+ADDPROPERTY(loCustomer,"LastName","Strahl")
+ADDPROPERTY(loCustomer,"Company","West Wind")
+ADDPROPERTY(loCustomer,"Entered", DATETIME())
+
+loAddress = CREATEOBJECT("EMPTY")
+ADDPROPERTY(loAddress,"Street","32 Kaiea")
+ADDPROPERTY(loAddress,"City","Paia")
+ADDPROPERTY(loCustomer,"Address",loAddress)
+
+loOrders = CREATEOBJECT("Collection")
+ADDPROPERTY(loCustomer,"Orders",loOrders)
+
+loOrder = CREATEOBJECT("Empty")
+ADDPROPERTY(loOrder,"Date",DATETIME())
+ADDPROPERTY(loOrder,"OrderId",SUBSTR(SYS(2015),2))
+ADDPROPERTY(loOrder,"OrderTotal",121.10)
+loOrders.Add(loOrder)
+
+loOrder = CREATEOBJECT("Empty")
+ADDPROPERTY(loOrder,"Date",DATETIME())
+ADDPROPERTY(loOrder,"OrderId",SUBSTR(SYS(2015),2))
+ADDPROPERTY(loOrder,"OrderTotal",44.22)
+loOrders.Add(loOrder)
+
+
+lnCount = 10000
+lnStart = SECONDS()
+FOR lnX = 1 TO lnCount
+	loCustomer._id = SYS(2015)
+	loMongo.Save(loCustomer,"Customers")
+ENDFOR
+
+this.MessageOut(TRANSFORM(lnCount) + " messages inserted in " + TRANSFORM(SECONDS() - lnStart))
+
+ENDFUNC
+*  SaveEntityWithChildrenWithTest
+
+
+************************************************************************
+*  RunManyUpdatesWithJson
+**************************
+*  Notes:
+*  This version is considerably faster than the previous test 
+*  as there's no JSON conversion from Fox object to JSON.
+*
+*  The performance variance is large, but be aware that 
+*  you have to be careful creating JSON as text because
+*  Json values do need encoding: Dates, strings (extended,
+*  quotes, special JS characters etc.) which complicates
+*  just sticking expression into a TEXTMERGE variable.
+*  Your mileage may vary.
+************************************************************************
+FUNCTION RunManyInsertsWithJson()
+
+loMongo = this.CreateMongo()
+
+*** Note objects are serialized as lower case
+loCustomer = CREATEOBJECT("EMPTY")
+
+lnCount = 10000
+lnStart = SECONDS()
+FOR lnX = 1 TO lnCount
+TEXT TO lcJson TEXTMERGE NOSHOW
+	{
+	    _id: "<<loMongo.GenerateId()>>",
+	    FirstName: "Rick",
+	    LastName: "Strahl",
+	    Company: "West Wind",
+	    Entered: "< <TTOC(DATETIME(),3)> >",
+	    Address: {
+	        Street: "32 Kaiea",
+	        City: "Paia"
+	    },
+	    Orders: [
+	        { OrderId: "ar431211", OrderTotal: 125.44, Date: "< <TTOC(DATETIME(),3)> >Z"},
+	        { OrderId: "fe134341", OrderTotal: 95.12, Date: "< <TTOC(DATETIME(),3)>  >Z" }
+	    ]
+	}
+	ENDTEXT
+
+	loMongo.Save(lcJson,"Customers",.T.)
+ENDFOR
+
+this.MessageOut(TRANSFORM(lnCount) + " messages inserted in " + TRANSFORM(SECONDS() - lnStart))
+
+ENDFUNC
+*  RunManyInsertsWithJson
+
 
 ************************************************************************
 *  BasicSaveEntityTest
