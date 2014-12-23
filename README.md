@@ -2,24 +2,24 @@
 
 #### A small library to access MongoDb from Visual FoxPro
 
-wwMongoDb is a library that allows you to access MongoDb from Visual FoxPro by way of
-.NET which acts as small shim. wwMongoDb works using the MongoDb C# driver and providing
-a string based interface that allows FoxPro to interact with MongoDb via JSON commands.
-
-### How it Works
-This library works through a number of layers to access MongoDb:
-
-* A FoxPro class that interacts with user code 
-* The class uses wwDotnetBridge to call into .NET
-* The class calls a custom Westwind.Data.MongoDb component
-* The component exposes high level single call operations callable from FoxPro
-* The component calls into the MongoDb driver to run Mongo Db operations
-* Results are captured as JSON data and marshalled back to the FoxPro class
-* The FoxPro class turns the results into FoxPro objects to return to user code
+wwMongoDb is a library that allows you to access MongoDb from Visual FoxPro. 
+wwMongoDb works using the MongoDb C# driver and provides a simple CRUD and
+JSON string based interface that allows FoxPro to interact  with MongoDb 
+via JSON commands and FoxPro serialized objects.
 
 Please also check:
 
 * [Change Log](changelog.md)
+
+### How it Works
+This library works through a number of layers to access MongoDb:
+
+* A FoxPro class that interacts with your code 
+* wwDotnetBridge which provides the interface to call .NET code
+* A custom Westwind.Data.MongoDb .NET component that marshals commands to the MongoDb driver
+* Westwind.Data.MongoDb exposes high level single call operations callable from FoxPro
+* Results are captured as JSON data and marshalled back to the FoxPro class
+* The FoxPro class turns the results into FoxPro objects to return to your code
 
 ### What you need
 In order to use and play with this library you will need a number of things:
