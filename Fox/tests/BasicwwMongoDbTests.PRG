@@ -372,6 +372,64 @@ ENDFUNC
 *   FindTest
 
 
+************************************************************************
+*  DeleteOneTest
+****************************************
+***  Function: Deletes an entity by ID
+***    Assume:
+***      Pass:
+***    Return:
+************************************************************************
+FUNCTION DeleteOneTest()
+
+loMongo = this.CreateMongo()
+
+*** Retrieve an id
+loCustomer = loMongo.FindOne('{ firstname: "Rick" }',"Customers")
+this.AssertNotNull(loCustomer,"Before id retrieval failed")
+lcId = loCustomer._id
+this.MessageOut("ID to search for: " + lcId)
+loCustomer = null
+
+this.AssertTrue(loMongo.Delete(lcId,"Customers"),"Customer not deleted: " + loMongo.cErrorMsg)
+
+ENDFUNC
+*   DeleteOne
+
+
+************************************************************************
+*  AccessCollection
+****************************************
+***  Function: Example of directly accessing the .NET MongoDb collection
+***            object.
+***    Assume:
+***      Pass: 
+***    Return:
+************************************************************************
+FUNCTION AccessCollection()
+
+loMongo = this.CreateMongo()
+
+loCollection = loMongo.GetCollection("Customers")
+
+this.AssertTrue(VARTYPE(loCollection) = "O","Collection retrieval failed")
+
+*** loCollection is a generic object so you can't directly
+*** access any methods. Use InvokeMethod() or Get/SetProperty()
+*** for all member access.
+lnRecordCount = loMongo.oBridge.InvokeMethod(loCollection,"count")
+
+*** Some other things you can do:
+* loMongo.oBridge.InvokeMethod(loCollection,"removeAll")
+* loMongo.oBridge.InvokeMethod(loCollection,"drop")
+* loMongo.oBridge.InvokeMethod(loCollection,"validate")
+* 
+
+this.MessageOut("Record count: " + TRANSFORM(lnRecordCount) )
+ENDFUNC
+*   AccessCollection
+
+
 *** The following tests are commented in order to not 
 *** force too many records into the DB for tests
 *** Selectively disable these.

@@ -212,10 +212,10 @@
         </member>
         <member name="M:Westwind.Data.MongoDb.MongoDbDataAccess`1.LoadJson(System.String,System.String)">
             <summary>
-            Loads an entity and returns a JSON string
+            Loads an entity by ID and returns a JSON string
             </summary>
-            <param name="id"></param>
-            <param name="collection"></param>
+            <param name="id">string id</param>
+            <param name="collection">Name of the collection to access</param>
             <returns></returns>
         </member>
         <member name="M:Westwind.Data.MongoDb.MongoDbDataAccess`1.LoadJson(System.Int32,System.String)">
@@ -249,12 +249,19 @@
             Defaults to false as to improve performance.
             </param>
         </member>
-        <member name="M:Westwind.Data.MongoDb.MongoDbDataAccess`1.Delete(System.String)">
+        <member name="M:Westwind.Data.MongoDb.MongoDbDataAccess`1.Delete(System.String,System.String)">
             <summary>
             Deletes an entity from the main entity set
             based on a key value.
             </summary>
             <param name="id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Data.MongoDb.MongoDbDataAccess`1.DeleteFromString(System.String,System.String)">
+            <summary>
+            Deletes Entities based on a filter expression
+            </summary>
+            <param name="filterJson"></param>
             <returns></returns>
         </member>
         <member name="M:Westwind.Data.MongoDb.MongoDbDataAccess`1.DeleteInternal(`0)">
@@ -294,6 +301,19 @@
             <param name="entity"></param>
             <param name="collectionName"></param>
             <returns>Id of object saved</returns>
+        </member>
+        <member name="M:Westwind.Data.MongoDb.MongoDbDataAccess`1.GetCollection(System.String)">
+            <summary>
+            Returns a Collection
+            </summary>
+            <param name="collectionName"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Westwind.Data.MongoDb.MongoDbDataAccess`1.GetDatabase">
+            <summary>
+            Returns the database instance so you can run commands off of it
+            </summary>
+            <returns></returns>
         </member>
         <member name="M:Westwind.Data.MongoDb.MongoDbDataAccess`1.GenerateNewId">
             <summary>

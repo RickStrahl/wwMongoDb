@@ -5,12 +5,20 @@ DO wwMongoDb
 
 loMongo = CREATEOBJECT("wwMongoDb")
 
+
 *** connects to localhost and FoxMongoTest Db
 *** if the Db doesn't exist it auto-creates
 loMongo.Connect("mongodb://localhost/FoxMongoTest")
 
 
 *** Add an Entity to the database
+
+loCollection = loMongo.GetCollection("Customers")
+? loCollection
+? loMongo.oBridge.InvokeMethod(loCollection,"Count")
+
+RETURN
+
 
 
 *** Create an object to persist

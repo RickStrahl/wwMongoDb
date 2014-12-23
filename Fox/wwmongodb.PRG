@@ -244,6 +244,55 @@ ENDFUNC
 *   Save
 
 ************************************************************************
+*  Delete
+****************************************
+***  Function: Deletes an entity by Id
+***    Assume:
+***      Pass: lvId -  An ID for a single entity
+***              OR
+***                 -  A MongoDb JSON document expression
+***                    which can delete multiple documents in batch
+***    Return: .T. or .F.  (check cErrorMsg on .F.)
+************************************************************************
+FUNCTION Delete(lvId, lcCollection)
+
+this.SetError()
+
+IF EMPTY(lvID)
+   this.SetError("Please pass an ID or a Query Document to the Delete() function")
+   RETURN .F.
+ENDIF
+
+IF VARTYPE(lvID) = "C" AND SUBSTR(ALLTRIM(lvId),1,1) = "{"
+    *** Content is JSON
+	llSuccess = this.oBridge.InvokeMethod(this.oMongo,"DeleteFromString",lvId,lcCollection)
+ELSE
+	llSuccess = this.oBridge.InvokeMethod(this.oMongo,"Delete",lvId,lcCollection)
+ENDIF
+
+IF !llSuccess
+   this.SetError(loMongo.cErrorMsg)
+ENDIF
+
+RETURN llSuccess
+ENDFUNC
+*   Delete
+
+************************************************************************
+*  GetCollection
+****************************************
+***  Function: Returns an instance of the .NET MongoCollection
+***    Assume:
+***      Pass:
+***    Return: 
+************************************************************************
+FUNCTION GetCollection(lcCollection)
+RETURN this.oBridge.InvokeMethod(this.oMongo,"GetCollection",lcCollection)
+ENDFUNC
+*   GetCollection
+
+
+************************************************************************
 *  Serialize
 ****************************************
 ***  Function: Method used to serialize JSON.

@@ -186,6 +186,11 @@ ENDFUNC
 ***    Return: object or null
 ************************************************************************
 FUNCTION Load(lvId, lcCollection)
+
+IF EMPTY(lcCollection)
+   ERROR "Collection must be supplied when calling Load()"
+ENDIF
+
 lcJson = this.oBridge.InvokeMethod(this.oMongo,"LoadJson",lvId,lcCollection)
 RETURN this.ProcessJsonResult(lcJson)
 ENDFUNC
@@ -221,8 +226,8 @@ this.cLastResponse = lcJson
 
 this.oLastResult = this.oBridge.InvokeMethod(this.oMongo,"SaveFromJson",lcJson,"Customers")
 
-IF ISNULL(this.oLastResult)
-   this.oLastResult = this.CreateEmptyResult()
+IF VARTYPE(this.oLastResult) # "O"
+   this.oLastResult = this.CreateEmptyLastResult()
    this.oLastResult.Ok = .F.
    this.lLastResult.Message = this.oBridge.cErrorMsg  
    THIS.SetError("Save operation failed: " + this.oBridge.cErrorMsg)
@@ -237,6 +242,55 @@ ENDIF
 RETURN .T.
 ENDFUNC
 *   Save
+
+************************************************************************
+*  Delete
+****************************************
+***  Function: Deletes an entity by Id
+***    Assume:
+***      Pass: lvId -  An ID for a single entity
+***              OR
+***                 -  A MongoDb JSON document expression
+***                    which can delete multiple documents in batch
+***    Return: .T. or .F.  (check cErrorMsg on .F.)
+************************************************************************
+FUNCTION Delete(lvId, lcCollection)
+
+this.SetError()
+
+IF EMPTY(lvID)
+   this.SetError("Please pass an ID or a Query Document to the Delete() function")
+   RETURN .F.
+ENDIF
+
+IF VARTYPE(lvID) = "C" AND SUBSTR(ALLTRIM(lvId),1,1) = "{"
+    *** Content is JSON
+	llSuccess = this.oBridge.InvokeMethod(this.oMongo,"DeleteFromString",lvId,lcCollection)
+ELSE
+	llSuccess = this.oBridge.InvokeMethod(this.oMongo,"Delete",lvId,lcCollection)
+ENDIF
+
+IF !llSuccess
+   this.SetError(loMongo.cErrorMsg)
+ENDIF
+
+RETURN llSuccess
+ENDFUNC
+*   Delete
+
+************************************************************************
+*  GetCollection
+****************************************
+***  Function: Returns an instance of the .NET MongoCollection
+***    Assume:
+***      Pass:
+***    Return: 
+************************************************************************
+FUNCTION GetCollection(lcCollection)
+RETURN this.oBridge.InvokeMethod(this.oMongo,"GetCollection",lcCollection)
+ENDFUNC
+*   GetCollection
+
 
 ************************************************************************
 *  Serialize
@@ -348,7 +402,7 @@ ENDFUNC
 ***    Return:
 ************************************************************************
 HIDDEN FUNCTION CreateEmptyLastResult
-RETURN this.oSerialize([{ Ok: true, Message: "", Id: "" }])
+RETURN this.Deserialize([{ Ok: true, Message: "", Id: "" }])
 ENDFUNC
 *   CreateLastResult
 

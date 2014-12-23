@@ -623,10 +623,16 @@ namespace Westwind.Data.MongoDb
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        public virtual bool Delete(string id)
-        {
-            var query = Query.EQ("_id", new BsonString(id));
-            var result = Collection.Remove(query);
+        public virtual bool Delete(string id, string collectionName = null)
+        {         
+            var query = Query.EQ("_id", id);
+
+            WriteConcernResult result;
+            if (!string.IsNullOrEmpty(collectionName))
+                result = Database.GetCollection(collectionName).Remove(query);
+            else
+                result = Collection.Remove(query);
+            
             if (result.HasLastErrorMessage)
             {
                 SetError(result.ErrorMessage);
@@ -635,16 +641,46 @@ namespace Westwind.Data.MongoDb
             return true;
         }
 
-        public virtual bool Delete(int id)
+        public virtual bool Delete(int id, string collectionName = null)
         {
             var query = Query.EQ("_id", id);
-            var result = Collection.Remove(query);
+
+            WriteConcernResult result;
+            
+            if (string.IsNullOrEmpty(collectionName))
+                result = Database.GetCollection(collectionName).Remove(query);
+            else
+                result = Collection.Remove(query);
+
             if (result.HasLastErrorMessage)
             {
                 SetError(result.ErrorMessage);
                 return false;
             }
             return true;
+        }
+
+        /// <summary>
+        /// Deletes Entities based on a filter expression
+        /// </summary>
+        /// <param name="filterJson"></param>
+        /// <returns></returns>
+        public virtual bool DeleteFromString(string filterJson, string collectionName = null)
+        {
+            var query = GetQueryFromString(filterJson);
+
+            WriteConcernResult result;
+
+            if (string.IsNullOrEmpty(collectionName))
+                result = Database.GetCollection(collectionName).Remove(query);
+            else
+                result = Collection.Remove(query);
+
+            if (result.Ok)
+                return true;
+
+            SetError(result.LastErrorMessage);
+            return false;
         }
 
         /// <summary>
@@ -796,6 +832,26 @@ namespace Westwind.Data.MongoDb
                 return null;
             }
             
+        }
+
+        /// <summary>
+        /// Returns a Collection
+        /// </summary>
+        /// <param name="collectionName"></param>
+        /// <returns></returns>
+        public MongoCollection GetCollection(string collectionName)
+        {
+            var col = Database.GetCollection(collectionName);                       
+            return col;
+        }
+
+        /// <summary>
+        /// Returns the database instance so you can run commands off of it
+        /// </summary>
+        /// <returns></returns>
+        public MongoDatabase GetDatabase()
+        {
+            return Database;
         }
 
         /// <summary>

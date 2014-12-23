@@ -2260,6 +2260,65 @@ ENDIF
 ENDFUNC
 
 ************************************************************************
+*  JsonString
+****************************************
+***  Function: Converts a string into a proper JSON encoded string
+***            including the quotes.
+***    Assume:
+***      Pass: lcValue - string to convert
+***    Return: JSON string
+************************************************************************
+FUNCTION JsonString(lcValue)
+DECLARE INTEGER JsonEncodeString IN wwipstuff.dll string  json,string@  output
+LOCAL lcOutput 
+lcOutput = REPLICATE(CHR(0),LEN(lcValue) * 6 + 3)
+lnPointer = JsonEncodeString(lcValue,@lcOutput)
+RETURN WinApi_NullString(@lcOutput)
+ENDFUNC
+*   JsonString
+
+************************************************************************
+*  JsonDate
+****************************************
+***  Function: Creates an ISO JSON compatible date string
+***            including the quotes.
+***    Assume:
+***      Pass: lvValue - Date to encode into ISO date
+***            llAssumeUtcDate - Set to true if date is
+***                              already a UTC date.
+***                              Otherwise date is converted
+***                              to UTC and output with Z at end.
+***    Return: JSON string in ISO date format  
+************************************************************************
+FUNCTION JsonDate(lvValue, llAssumeUtcDate)
+LOCAL lcDate
+
+
+IF !llAssumeUtcDate
+	*** turn into UTC date so we don't specify tz
+	lvValue = lvValue + (GetTimeZone() * 60)
+ENDIF
+
+IF EMPTY(lvValue)
+	lvValue = {^1970-1-1 :}
+ENDIF
+
+#IF wwVFPVersion > 8
+	lcDate = '"' + TTOC(lvValue,3) + 'Z"'
+#ELSE
+	lcDate = '"' + TRANSFORM(YEAR(lvValue)) + "-" + ;
+	       PADL(TRANSFORM(MONTH(lvValue)),2,"0") + "-" +;
+	       PADL(TRANSFORM(Day(lvValue)),2,"0") + "T" +;
+	       PADL(TRANSFORM(Hour(lvValue)),2,"0") + ":" +;
+	       PADL(TRANSFORM(Minute(lvValue)),2,"0") + ":" +;
+	       PADL(TRANSFORM(Sec(lvValue)),2,"0") + 'Z"'
+#ENDIF
+
+RETURN lcDate
+ENDFUNC
+*   JsonDate
+
+************************************************************************
 FUNCTION GetAppStartPath
 *********************************
 ***  Function: Returns the FoxPro start path
