@@ -224,7 +224,7 @@ this.oLastResult = null
 this.cLastRequest = lcJson 
 this.cLastResponse = lcJson
 
-this.oLastResult = this.oBridge.InvokeMethod(this.oMongo,"SaveFromJson",lcJson,"Customers")
+this.oLastResult = this.oBridge.InvokeMethod(this.oMongo,"SaveFromJson",lcJson,lcCollection)
 
 IF VARTYPE(this.oLastResult) # "O"
    this.oLastResult = this.CreateEmptyLastResult()

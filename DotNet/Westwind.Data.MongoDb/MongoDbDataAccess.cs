@@ -625,7 +625,7 @@ namespace Westwind.Data.MongoDb
         /// <returns></returns>
         public virtual bool Delete(string id, string collectionName = null)
         {         
-            var query = Query.EQ("_id", id);
+            var query = Query.EQ("_id", new BsonString(id));
 
             WriteConcernResult result;
             if (!string.IsNullOrEmpty(collectionName))
