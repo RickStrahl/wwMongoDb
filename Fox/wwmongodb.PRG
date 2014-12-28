@@ -265,16 +265,21 @@ ENDIF
 
 IF VARTYPE(lvID) = "C" AND SUBSTR(ALLTRIM(lvId),1,1) = "{"
     *** Content is JSON
-	llSuccess = this.oBridge.InvokeMethod(this.oMongo,"DeleteFromString",lvId,lcCollection)
+	this.oLastResult = this.oBridge.InvokeMethod(this.oMongo,"DeleteFromString",lvId,lcCollection)
 ELSE
-	llSuccess = this.oBridge.InvokeMethod(this.oMongo,"Delete",lvId,lcCollection)
+	this.oLastResult = this.oBridge.InvokeMethod(this.oMongo,"Delete",lvId,lcCollection)
 ENDIF
 
-IF !llSuccess
-   this.SetError(loMongo.cErrorMsg)
+IF ISNULL(this.oLastResult)
+   this.SetError(this.oBridge.cErrorMsg)
+   RETURN .F.
 ENDIF
 
-RETURN llSuccess
+IF !THIS.oLastResult.Ok
+   this.SetError(this.oLastResult.LastErrorMessage)
+ENDIF
+
+RETURN this.oLastResult.Ok
 ENDFUNC
 *   Delete
 

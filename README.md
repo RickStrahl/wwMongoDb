@@ -10,6 +10,7 @@ via JSON commands and FoxPro serialized objects.
 Please also check:
 
 * [Change Log](changelog.md)
+* [C# MongoDb Driver Documentation](http://api.mongodb.org/csharp/current/)
 
 ### How it Works
 This library works through a number of layers to access MongoDb:
@@ -101,7 +102,7 @@ The connection string supports the following URL Moniker syntax:
 
 	mongodb://username:password@servername:port/database
 
-if no port is specified the default 27017 port is used. 
+if no port is specified the default 27017 port is used. Username and password are optional and only required if you set up your database with a logon username and password.
 
 I recommend that you create an instance of the wwMongoDb object once and then store it somewhere persistent in your application: On an application or server object so it can be used without re-creating an instance for each connection. Unlike SQL server, Mongo creates new connections on each request, so there's no 'persistent' connection to the server.
 
@@ -258,7 +259,51 @@ ENDIF
 ```
 
 MongoDb can return nested objects/arrays. Arrays are returned as Collections in FoxPro. 
-For example on the above Entity 
+
+#### Deleting Entities
+There are a number of ways to delete entities.
+
+**Delete an individual entity by id:**
+```
+loMongo = this.CreateMongo()
+
+*** Retrieve an id
+lcId = "someIdFromSomewhere"
+
+IF !loMongo.Delete(lcId,"Customers")
+   ?"Customer not deleted: " + loMongo.cErrorMsg)
+ENDIF
+
+? "Deleted entities: " + TRANS(loMongo.oLastResult.DocumentsAffected)
+```
+
+**Delete multiple entities based on a filter:**
+```
+loMongo = this.CreateMongo()
+
+llResult = loMongo.Delete('{ firstname: "Markus" }',"Customers")
+
+IF !llResult
+   ? "Delete operation failed: " + loMongo.cErrorMsg
+ENDIF
+
+? "Documents deleted: " + TRANSFORM(loMongo.oLastResult.DocumentsAffected)
+```
+
+**Delete all entities:**
+
+```
+loMongo = this.CreateMongo()
+loCollection = loMongo.GetCollection("Customers")
+loMongo.oBridge.InvokeMethod(loCollection,"RemoveAll")
+```
+
+**Drop a collection:**
+```
+loMongo = this.CreateMongo()
+loCollection = loMongo.GetCollection("Customers")
+loMongo.oBridge.InvokeMethod(loCollection,"Drop")
+```
 
 ### Running FoxUnit Tests
 The best way to check out examples is to run the FoxUnit tests in the tests\ folder.

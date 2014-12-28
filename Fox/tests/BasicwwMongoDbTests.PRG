@@ -148,8 +148,10 @@ TEXT TO lcJson TEXTMERGE NOSHOW
 }
 ENDTEXT
 
-
 this.AssertTrue(loMongo.Save(lcJson,"Customers",.T.),loMongo.cErrorMsg)
+
+*** Another way to check for errors
+this.AssertTrue(loMongo.oLastResult.Ok,loMongo.oLastResult.Message)
 
 lcId = loMongo.oLastResult.Id
 this.MessageOut("ID Generated: " + lcId)
@@ -391,11 +393,34 @@ lcId = loCustomer._id
 this.MessageOut("ID to search for: " + lcId)
 loCustomer = null
 
-this.AssertTrue(loMongo.Delete(lcId,"Customers"),"Customer not deleted: " + loMongo.cErrorMsg)
+llResult = loMongo.Delete(lcId,"Customers")
+
+this.AssertTrue(llResult,"Customer not deleted: " + loMongo.cErrorMsg)
+this.MessageOut("Documents deleted: " + TRANSFORM(loMongo.oLastResult.DocumentsAffected))
 
 ENDFUNC
 *   DeleteOne
 
+
+************************************************************************
+*  DeleteWithFilterTest
+****************************************
+***  Function: Deletes multiple entities based on a filter expression
+***    Assume:
+***      Pass:
+***    Return:
+************************************************************************
+FUNCTION DeleteWithFilterTest()
+
+loMongo = this.CreateMongo()
+
+llResult = loMongo.Delete('{ firstname: "Markus" }',"Customers")
+
+this.AssertTrue(llResult,"Customer not deleted: " + loMongo.cErrorMsg)
+this.MessageOut("Documents deleted: " + TRANSFORM(loMongo.oLastResult.DocumentsAffected))
+
+ENDFUNC
+*   DeleteOne
 
 ************************************************************************
 *  AccessCollection

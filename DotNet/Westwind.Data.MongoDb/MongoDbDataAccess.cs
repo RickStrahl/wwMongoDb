@@ -623,7 +623,7 @@ namespace Westwind.Data.MongoDb
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        public virtual bool Delete(string id, string collectionName = null)
+        public virtual MongoResponse Delete(string id, string collectionName = null)
         {         
             var query = Query.EQ("_id", new BsonString(id));
 
@@ -632,16 +632,16 @@ namespace Westwind.Data.MongoDb
                 result = Database.GetCollection(collectionName).Remove(query);
             else
                 result = Collection.Remove(query);
-            
-            if (result.HasLastErrorMessage)
+
+            return new MongoResponse
             {
-                SetError(result.ErrorMessage);
-                return false;
-            }
-            return true;
+                Ok = !result.HasLastErrorMessage,
+                DocumentsAffected = (int)result.DocumentsAffected,
+                Message = result.LastErrorMessage
+            };
         }
 
-        public virtual bool Delete(int id, string collectionName = null)
+        public virtual MongoResponse Delete(int id, string collectionName = null)
         {
             var query = Query.EQ("_id", id);
 
@@ -652,12 +652,13 @@ namespace Westwind.Data.MongoDb
             else
                 result = Collection.Remove(query);
 
-            if (result.HasLastErrorMessage)
+
+            return new MongoResponse
             {
-                SetError(result.ErrorMessage);
-                return false;
-            }
-            return true;
+                Ok = !result.HasLastErrorMessage,
+                DocumentsAffected = (int)result.DocumentsAffected,
+                Message = result.LastErrorMessage
+            };
         }
 
         /// <summary>
@@ -665,22 +666,24 @@ namespace Westwind.Data.MongoDb
         /// </summary>
         /// <param name="filterJson"></param>
         /// <returns></returns>
-        public virtual bool DeleteFromString(string filterJson, string collectionName = null)
+        public virtual MongoResponse DeleteFromString(string filterJson, string collectionName = null)
         {
             var query = GetQueryFromString(filterJson);
 
             WriteConcernResult result;
 
-            if (string.IsNullOrEmpty(collectionName))
+            if (!string.IsNullOrEmpty(collectionName))
                 result = Database.GetCollection(collectionName).Remove(query);
             else
                 result = Collection.Remove(query);
 
-            if (result.Ok)
-                return true;
 
-            SetError(result.LastErrorMessage);
-            return false;
+            return new MongoResponse
+            {
+                Ok = !result.HasLastErrorMessage,
+                DocumentsAffected = (int)result.DocumentsAffected,
+                Message = result.LastErrorMessage
+            };
         }
 
         /// <summary>
@@ -792,7 +795,7 @@ namespace Westwind.Data.MongoDb
         /// <param name="entity"></param>
         /// <param name="collectionName"></param>
         /// <returns>Id of object saved</returns>
-        public MongoSaveResponse SaveFromJson(string entityJson, string collectionName = null)
+        public MongoResponse SaveFromJson(string entityJson, string collectionName = null)
         {
             if (string.IsNullOrEmpty(collectionName))
                 collectionName = CollectionName;
@@ -819,10 +822,11 @@ namespace Westwind.Data.MongoDb
                     return null;
                 }
 
-                return new MongoSaveResponse
+                return new MongoResponse
                 {
                     Id = doc["_id"].ToString(),
                     Ok = !result.HasLastErrorMessage,
+                    DocumentsAffected = (int) result.DocumentsAffected,
                     Message = result.LastErrorMessage
                 };
             }
@@ -841,7 +845,7 @@ namespace Westwind.Data.MongoDb
         /// <returns></returns>
         public MongoCollection GetCollection(string collectionName)
         {
-            var col = Database.GetCollection(collectionName);                       
+            var col = Database.GetCollection(collectionName);                                 
             return col;
         }
 
@@ -943,10 +947,11 @@ namespace Westwind.Data.MongoDb
         }
     }
 
-    public class MongoSaveResponse
+    public class MongoResponse
     {
         public string Id { get; set; }
         public bool Ok { get; set; }
+        public int DocumentsAffected { get; set; }
         public string Message { get; set; }
     }
 }
