@@ -92,7 +92,7 @@ ADDPROPERTY(loCustomer,"Company","EPS Software")
 ADDPROPERTY(loCustomer,"Entered", DATETIME())
 
 loAddress = CREATEOBJECT("EMPTY")
-ADDPROPERTY(loAddress,"Street","32 Kaiea")
+ADDPROPERTY(loAddress,"Street","34 Kaiea")
 ADDPROPERTY(loAddress,"City","Paia")
 ADDPROPERTY(loCustomer,"Address",loAddress)
 

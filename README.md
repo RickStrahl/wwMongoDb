@@ -12,6 +12,7 @@ Please also check:
 * [Change Log](changelog.md)
 * [C# MongoDb Driver Documentation](http://api.mongodb.org/csharp/current/)
 
+
 ### How it Works
 This library works through a number of layers to access MongoDb:
 
@@ -272,6 +273,7 @@ lcId = "someIdFromSomewhere"
 
 IF !loMongo.Delete(lcId,"Customers")
    ?"Customer not deleted: " + loMongo.cErrorMsg)
+   RETURN
 ENDIF
 
 ? "Deleted entities: " + TRANS(loMongo.oLastResult.DocumentsAffected)
@@ -285,6 +287,7 @@ llResult = loMongo.Delete('{ firstname: "Markus" }',"Customers")
 
 IF !llResult
    ? "Delete operation failed: " + loMongo.cErrorMsg
+   RETURN
 ENDIF
 
 ? "Documents deleted: " + TRANSFORM(loMongo.oLastResult.DocumentsAffected)
@@ -317,6 +320,21 @@ The test classes can be easily run from within FoxUnit. To use FoxUnit:
 * Run selected or all tests
 * Double click to jump to code
 
+### Project Sponsors
+The following people/organizations have provided sponsorship to this project by way of direct donations or for paid development as part of a project:
+
+* **Marty Glynn**<br/>
+Marty was the original sponsor who requested the basic feature set for accessing
+MongoDb.
+
+* **Dan Martin - WeatherMaker**<br/>
+Dan and his company provided several of my billable hours dedicated to this project 
+for adding a few small enhancements and bug fixes.
+
+Want to sponsor this project or make a donation? You can contact me directly at rstrahl@west-wind.com or you can also make a donation online via PayPal.
+
+* [Make a donation for wwMongoDb using PayPal](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=T377Y7VNFA554)
+* [Make a donation for wwMongoDb using our Web Store](http://store.west-wind.com/product/donation)
 
 ### License
 This library is published under MIT license terms:
