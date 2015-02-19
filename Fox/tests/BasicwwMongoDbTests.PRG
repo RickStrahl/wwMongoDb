@@ -446,12 +446,13 @@ loMongo = this.CreateMongo()
 
 TEXT TO lcJson NOSHOW
 [    
-       { $project: { Company: "$Company", OrderCount: { $size: "$Orders" }} },
+       { $project: { Company: "$Company", OrderCount: { $size: "$Orders" }} },       
        { $match: {                   
-              Company: {$gte: "F" },
+              Company: {$gte: "C" },
               OrderCount: { $gt: 0 }
            }
       },
+
       { $group: {         
           _id: "$Company", 
           CustomerCount: {$sum: 1 } ,

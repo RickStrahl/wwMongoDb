@@ -108,7 +108,9 @@ if no port is specified the default 27017 port is used. Username and password ar
 
 I recommend that you create an instance of the wwMongoDb object once and then store it somewhere persistent in your application: On an application or server object so it can be used without re-creating an instance for each connection. Unlike SQL server, Mongo creates new connections on each request, so there's no 'persistent' connection to the server.
 
-#### Save Data (and create Db/Table if it doesn't exist)
+#### Save Data from a Fox Object
+*(and create Db/Table if it doesn't exist)*
+
 ```
 *** Load library and dependencies
 DO wwMongoDb
@@ -151,7 +153,10 @@ ADDPROPERTY(loOrder,"OrderId",SUBSTR(SYS(2015),2))
 ADDPROPERTY(loOrder,"OrderTotal",120.00)
 loOrders.Add(loOrder)
 
+
+*** NOW SAVE THE OBJECT
 this.AssertTrue(loMongo.Save(loCustomer,"Customers"),loMongo.cErrorMsg)
+
 
 this.AssertTrue(loCustomer._id == loMongo.oLastResult.Id,"Own id shouldn't be updated")
 
@@ -177,7 +182,48 @@ ENDIF
 Note that error messages from Mongo can be sketchy and often don't return any message info.
 Your mileage may vary. It's usually best to check the result value for the function and if it's not returning the type you're expecting you have an error to deal with.
 
+#### Save an object using a JSON String
+You can also save object using JSON strings, although I'm not sure how useful that is as you essentially have to create the JSON structures to save. Note also that MongoDb uses a special JSON dialect that encodes certain fields like dates in a special way. Regardless it is possible to dynamically create strings and save them using the following code:
+
+```
+loMongo = this.CreateMongo()
+
+*** Note objects are serialized as lower case
+loCustomer = CREATEOBJECT("EMPTY")
+
+TEXT TO lcJson TEXTMERGE NOSHOW
+{
+    _id: "<<loMongo.GenerateId()>>",
+    FirstName: "Rick",
+    LastName: "Strahl",
+    Company: "West Wind",
+    Entered: "<<TTOC(DATETIME(),3)>>Z",
+    Address: {
+        Street: "32 Kaiea",
+        City: "Paia"
+    },
+    Orders: [
+        { OrderId: "ar431211", OrderTotal: 125.44, Date: "<<TTOC(DATETIME(),3)>>Z"},
+        { OrderId: "fe134341", OrderTotal: 95.12, Date: "<<TTOC(DATETIME(),3)>>Z" }
+    ]
+}
+ENDTEXT
+
+this.AssertTrue(loMongo.Save(lcJson,"Customers",.T.),loMongo.cErrorMsg)
+
+*** Another way to check for errors
+this.AssertTrue(loMongo.oLastResult.Ok,loMongo.oLastResult.Message)
+
+lcId = loMongo.oLastResult.Id
+this.MessageOut("ID Generated: " + lcId)
+```
+Note the date encoding - if you use strings you're responsible for providing the proper format  for non string values and escaped strings for string values.
+
+Although the above is possible I highly recommend you send data as objects as the wwMongoDb serialization automatically handles the proper MongoDb compatible JSON encoding for most types.
+
 #### Query: Read a Collection of Items based on a filter
+You can query using MongoDb JSON syntax for providing the filter expressions:
+
 ```
 loMongo = this.CreateMongo()
 loCustomers = loMongo.Find('{ firstname: "Rick" }',"Customers")
