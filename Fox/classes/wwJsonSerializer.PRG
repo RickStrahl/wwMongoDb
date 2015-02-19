@@ -913,6 +913,10 @@ RETURN SUBSTR(lcCode,1,lnAT)
 FUNCTION DeserializeJson(lcJson)
 LOCAL loSer, loRes
 
+IF (VARTYPE(lcJson) != "C")
+   RETURN NULL
+ENDIF   
+
 IF ISNULL(THIS.oBridge)
 	THIS.oBridge = GetwwDotnetBridge()
 ENDIF

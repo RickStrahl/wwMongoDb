@@ -15,7 +15,7 @@ namespace Westwind.Data.MongoDb
 
     /// <summary>
     /// A non-generic version of the Mongo data access component that requires explicitly
-    /// specifying result entity types.
+    /// specifying result entity types and use of string based entity inputs.
     /// </summary>
     public class MongoDbDataAccess : MongoDbDataAccess<object>
     {
@@ -455,6 +455,22 @@ namespace Westwind.Data.MongoDb
             var items = Database.GetCollection<T>(collectionName).Find(query);
 
             return items;
+        }
+
+        public string Aggregate(string jsonQuery, string collectionName = null)
+        {
+
+            var collection = Database.GetCollection(collectionName);
+            var doc = BsonSerializer.Deserialize<BsonDocument[]>(jsonQuery);
+
+            var args = new AggregateArgs();
+            args.Pipeline = doc;
+
+            var cursor = collection.Aggregate(args);
+
+            string json =  cursor.ToJson(new JsonWriterSettings { OutputMode = JsonOutputMode.Strict });
+
+            return json;
         }
 
         /// <summary>

@@ -178,6 +178,35 @@ ENDFUNC
 *   FindOne
 
 ************************************************************************
+*  Aggregate
+****************************************
+***  Function:
+***    Assume:
+***      Pass:
+***    Return:
+************************************************************************
+FUNCTION Aggregate(lvQuery,lcCollection)
+
+IF !VARTYPE(lvQuery) = "O"
+   lcJson = lvQuery
+ELSE
+   lcJson = this.Serialize(lvQuery)
+
+   *** Translate ___ into $ because $ is illegal Fox prop
+   lcJson = STRTRAN(lcJson,["___],[$])   
+ENDIF      
+
+this.cLastResponse = ""
+this.cLastRequest = lcJson
+
+this.oBridge.cErrorMsg = ""
+lcJson = this.oBridge.InvokeMethod(this.oMongo,"Aggregate",lcJson,lcCollection)
+
+RETURN this.ProcessJsonResult(lcJson)
+ENDFUNC
+*   Aggregate
+
+************************************************************************
 *  Load
 ****************************************
 ***  Function: Loads an item by ID
@@ -205,8 +234,14 @@ ENDFUNC
 ***      Pass: lvEntity -  Object or Json string
 ***    Return: .T. or .F.
 ************************************************************************
-FUNCTION Save(lvEntity,lcCollection, llIsJson)
+FUNCTION Save(lvEntity,lcCollection, reserved)
 LOCAL lcResult, lcType, loSer, lcJson
+
+llIsJson = .F.
+lcVarType = VARTYPE(lvEntity)
+IF lcVarType = "C" OR lcVarType = "M"
+   llIsJson = .t.
+ENDIF
 
 IF IsNullOrEmpty(lvEntity)
    this.SetError("Can't save null or empty entity")

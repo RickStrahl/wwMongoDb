@@ -7,7 +7,7 @@
         <member name="T:Westwind.Data.MongoDb.MongoDbDataAccess">
             <summary>
             A non-generic version of the Mongo data access component that requires explicitly
-            specifying result entity types.
+            specifying result entity types and use of string based entity inputs.
             </summary>
         </member>
         <member name="T:Westwind.Data.MongoDb.MongoDbDataAccess`1">

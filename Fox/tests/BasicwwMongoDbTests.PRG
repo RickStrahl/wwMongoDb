@@ -168,6 +168,65 @@ ENDFUNC
 
 
 ************************************************************************
+*  SaveManyEntities
+****************************************
+***  Function:
+***    Assume:
+***      Pass:
+***    Return:
+************************************************************************
+FUNCTION SaveManyEntities()
+
+loMongo = this.CreateMongo()
+
+FOR lnx = 1 TO 10000
+
+	*** Note objects are serialized as lower case
+	loCustomer = CREATEOBJECT("EMPTY")
+
+	TEXT TO lcJson TEXTMERGE NOSHOW
+{
+    _id: "<<loMongo.GenerateId()>>",
+    FirstName: "Rick",
+    LastName: "Strahl",
+    Company: "East Wind",
+    Entered: "<<TTOC(DATETIME(),3)>>",
+    Address: {
+        Street: "32 Kaiea",
+        City: "Paia"
+    },
+    Orders: [
+        { OrderId: "ar431211", OrderTotal: 125.44, Date: "<<TTOC(DATETIME(),3)>>Z"},
+        { OrderId: "fe134341", OrderTotal: 95.12, Date: "<<TTOC(DATETIME(),3)>>Z" }
+    ]
+}
+	ENDTEXT
+
+	loMongo.Save(lcJson,"Customers")
+ENDFOR
+
+this.AssertTrue(loMongo.Save(lcJson,"Customers",.T.),loMongo.cErrorMsg)
+
+*** Another way to check for errors
+this.AssertTrue(loMongo.oLastResult.Ok,loMongo.oLastResult.Message)
+
+lcId = loMongo.oLastResult.Id
+this.MessageOut("ID Generated: " + lcId)
+
+loCustomer = loMongo.Load(lcId,"Customers")
+
+this.MessageOut( loCustomer.FirstName + " " + loCustomer.LastName + ;
+               " (" + TRANSFORM(loCustomer.entered) + ")" + ;
+               " (ID: " + TRANSFORM(loCustomer._id) + ")")
+
+
+ENDFUNC
+*   SaveManyEntities
+
+
+
+
+************************************************************************
 *  BasicSaveEntityTest
 ****************************************
 FUNCTION BasicSaveEntityTest()
@@ -373,6 +432,50 @@ ENDIF
 ENDFUNC
 *   FindTest
 
+************************************************************************
+*  Aggregate
+****************************************
+***  Function:
+***    Assume:
+***      Pass:
+***    Return:
+************************************************************************
+FUNCTION AggregateTest()
+
+loMongo = this.CreateMongo()
+
+TEXT TO lcJson NOSHOW
+[    
+       { $project: { Company: "$Company", OrderCount: { $size: "$Orders" }} },
+       { $match: {                   
+              Company: {$gte: "F" },
+              OrderCount: { $gt: 0 }
+           }
+      },
+      { $group: {         
+          _id: "$Company", 
+          CustomerCount: {$sum: 1 } ,
+          OrderCount: {$sum: "$OrderCount" }
+        }          
+     }
+]
+ENDTEXT
+
+loResults = loMongo.Aggregate(lcJson,"Customers")
+this.AssertNotNull(loResults,loMongo.cErrorMsg)
+
+lnCount = loResults.Count
+this.MessageOut(TRANSFORM(lnCount) + " results")
+FOR lnX = 1 TO lnCount
+   loResult = loResults[lnX]
+   this.MessageOut( TRANSFORM(loResult._id) + ;
+                    "  Cust Count: " + TRANSFORM(loResult.CustomerCount) + ;
+                    "  Order Count: " + TRANSFORM(loResult.OrderCount) )
+ENDFOR
+
+ENDFUNC
+*   Aggregate
+
 
 ************************************************************************
 *  DeleteOneTest
@@ -560,6 +663,8 @@ ENDFUNC
 
 *!*	ENDFUNC
 *!*	*  RunManyInsertsWithJson
+
+
 
 
 ENDDEFINE

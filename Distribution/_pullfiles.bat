@@ -1,7 +1,1 @@
-copy ..\fox\*.dll
-copy ..\fox\wwmongodb.prg
-copy ..\fox\*.h
-
-copy ..\fox\classes\*.prg .\classes
-copy ..\fox\bin\*.dll .\bin
-copy ..\fox\bin\Westwind.Data.MongoDb.xml .\bin
+C:\Users\Rick\.kre\packages\KRE-CLR-x86.1.0.0-rc1-10845\bin;C:\Users\Rick\.kre\bin;C:\Chocolatey\bin;C:\Program Files (x86)\Git\cmd;C:\Users\Rick\AppData\Roaming\scriptcs;c:\utl;c:\mongodb\bin;C:\tools\mysql\current\bin;C:\tools\mysql\current\bin;C:\Users\Rick\AppData\Roaming\npm;C:\Users\Rick\AppData\Roaming\Boxstarter;C:\Program Files\West Wind WebSurge;

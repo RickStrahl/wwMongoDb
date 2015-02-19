@@ -10,6 +10,7 @@ via JSON commands and FoxPro serialized objects.
 Please also check:
 
 * [Change Log](changelog.md)
+* [MongoDb Documentation](http://docs.mongodb.org/manual/)
 * [C# MongoDb Driver Documentation](http://api.mongodb.org/csharp/current/)
 
 
@@ -261,6 +262,46 @@ ENDIF
 
 MongoDb can return nested objects/arrays. Arrays are returned as Collections in FoxPro. 
 
+#### Aggregations
+You can also access MongoDb's Aggregation Pipeline. The Aggregation pipeline allows for aggregate queries using grouping and summarizing of data. To use this feature you can use the `Aggregate` method and provide a string that holds an array of the various pipeline commands.
+
+```
+loMongo = this.CreateMongo()
+
+TEXT TO lcJson NOSHOW
+[    
+       { $project: { Company: "$Company", OrderCount: { $size: "$Orders" }} },
+       { $match: {                   
+              Company: {$gte: "F" },
+              OrderCount: { $gt: 0 }
+           }
+      },
+      { $group: {         
+          _id: "$Company", 
+          CustomerCount: {$sum: 1 } ,
+          OrderCount: {$sum: "$OrderCount" }
+        }          
+     }
+]
+ENDTEXT
+
+loResults = loMongo.Aggregate(lcJson,"Customers")
+this.AssertNotNull(loResults,loMongo.cErrorMsg)
+
+lnCount = loResults.Count
+this.MessageOut(TRANSFORM(lnCount) + " results")
+FOR lnX = 1 TO lnCount
+   loResult = loResults[lnX]
+   this.MessageOut( TRANSFORM(loResult._id) + ;
+                    "  Cust Count: " + TRANSFORM(loResult.CustomerCount) + ;
+                    "  Order Count: " + TRANSFORM(loResult.OrderCount) )
+ENDFOR
+```
+
+You provide the aggregation pipeline as an array of documents. The most common ones are $match and $group as well as $project. Note that you can run multiple $match,$project,$group cycles to process results multiple times consequetively.
+
+[http://docs.mongodb.org/manual/reference/operator/aggregation/](http://docs.mongodb.org/manual/reference/operator/aggregation/)
+
 #### Deleting Entities
 There are a number of ways to delete entities.
 
@@ -326,6 +367,10 @@ The following people/organizations have provided sponsorship to this project by 
 * **Marty Glynn**<br/>
 Marty was the original sponsor who requested the basic feature set for accessing
 MongoDb.
+
+* **John Harris - Unifier 2 Group**<br/>
+John offered early support and feedback for this project and as well as a 
+sizable donation for the original development.
 
 * **Dan Martin - WeatherMaker**<br/>
 Dan and his company provided several of my billable hours dedicated to this project 
