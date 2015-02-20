@@ -24,3 +24,4 @@ TestResults
 *.user
 *.suo
 
+/wwMongoDb.design

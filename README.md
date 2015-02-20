@@ -1,5 +1,7 @@
 # wwMongoDb
 
+<img src="wwmongodb.png" align="left" />
+
 #### A small library to access MongoDb from Visual FoxPro
 
 wwMongoDb is a library that allows you to access MongoDb from Visual FoxPro. 
