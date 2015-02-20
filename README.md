@@ -1,6 +1,6 @@
 # wwMongoDb
 
-<img src="wwmongodb.png" align="left" />
+<img src="wwMongoDb.png" align="left" />
 
 #### A small library to access MongoDb from Visual FoxPro
 
