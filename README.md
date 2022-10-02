@@ -75,7 +75,7 @@ variable so I can access the server and the shell easily.
 
 Once everything is running you can go to the FoxPro command prompt and do:
 
-```
+```foxpro
 DO test
 ```
 
@@ -86,7 +86,7 @@ can look at the FoxUnit tests in tests\BasicMongoDbsamples.prg and run those tes
 Now you're ready to run a few operations.
 
 #### Connecting to MongoDb
-```
+```foxpro
 *** Load library and dependencies
 DO wwMongoDb
 
@@ -113,7 +113,7 @@ I recommend that you create an instance of the wwMongoDb object once and then st
 #### Save Data from a Fox Object
 *(and create Db/Table if it doesn't exist)*
 
-```
+```foxpro
 *** Load library and dependencies
 DO wwMongoDb
 
@@ -168,13 +168,13 @@ Note that you can either assign an Id explicitly as I did here (recommended), or
 can let MongoDb auto-create an id. Auto-created Ids are returned on a oLastResult object
 as:
 
-```
+```foxpro
 lcId = loMongo.oLastResult.Id
 ```
 
 You can also check for errors on a Save operation:
 
-```
+```foxpro
 IF !loMongo.Ok
 	? loMongo.oLastResult.Message
     RETURN
@@ -187,7 +187,7 @@ Your mileage may vary. It's usually best to check the result value for the funct
 #### Save an object using a JSON String
 You can also save object using JSON strings, although I'm not sure how useful that is as you essentially have to create the JSON structures to save. Note also that MongoDb uses a special JSON dialect that encodes certain fields like dates in a special way. Regardless it is possible to dynamically create strings and save them using the following code:
 
-```
+```foxpro
 loMongo = this.CreateMongo()
 
 *** Note objects are serialized as lower case
@@ -246,14 +246,14 @@ most articles and books).
 
 For example the following find all entries that start with an R using a RegEx expression (which is legal in JSON/JavaScript):
 
-```
+```foxpro
 *** Search parameters and skip 30 and limit to 10 items
 loCustomers = loMongo.Find('{ firstname: /^R.*/i, entered: { $gt: new Date(2014,12,1) }',;
                            "Customers",30,10)
 ```
 
 #### Returning a single Entity
-```
+```foxpro
 loMongo = this.CreateMongo()
 
 loCustomer = loMongo.FindOne('{ firstname: "Rick" }',"Customers")
@@ -270,7 +270,7 @@ You can also use the Load() method to retrieve a single entity by ID.
 
 #### Returning an Entity by ID
 
-```
+```foxpro
 lcID = "SomeIdYouCaptured"
 
 loMongo = this.CreateMongo()
@@ -291,7 +291,7 @@ contain child objects or collections. wwMongoDb deserializes those objects and
 collections as FoxPro objects and FoxPro collections. The previous two examples
 retrieved customer objects - and you can also access the child entities like this:
 
-```
+```foxpro
 *** Child Object
 IF !ISNULL(loCustomer.Address)
    this.MessageOut( "   " + loCustomer.Address.Street + ", " +;
@@ -313,7 +313,7 @@ MongoDb can return nested objects/arrays. Arrays are returned as Collections in 
 #### Aggregations
 You can also access MongoDb's Aggregation Pipeline. The Aggregation pipeline allows for aggregate queries using grouping and summarizing of data. To use this feature you can use the `Aggregate` method and provide a string that holds an array of the various pipeline commands.
 
-```
+```foxpro
 loMongo = this.CreateMongo()
 
 TEXT TO lcJson NOSHOW
@@ -354,7 +354,7 @@ You provide the aggregation pipeline as an array of documents. The most common o
 There are a number of ways to delete entities.
 
 **Delete an individual entity by id:**
-```
+```foxpro
 loMongo = this.CreateMongo()
 
 *** Retrieve an id
@@ -369,7 +369,7 @@ ENDIF
 ```
 
 **Delete multiple entities based on a filter:**
-```
+```foxpro
 loMongo = this.CreateMongo()
 
 llResult = loMongo.Delete('{ firstname: "Markus" }',"Customers")
@@ -384,14 +384,14 @@ ENDIF
 
 **Delete all entities:**
 
-```
+```foxpro
 loMongo = this.CreateMongo()
 loCollection = loMongo.GetCollection("Customers")
 loMongo.oBridge.InvokeMethod(loCollection,"RemoveAll")
 ```
 
 **Drop a collection:**
-```
+```foxpro
 loMongo = this.CreateMongo()
 loCollection = loMongo.GetCollection("Customers")
 loMongo.oBridge.InvokeMethod(loCollection,"Drop")
